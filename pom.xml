@@ -22,7 +22,7 @@
         <module>product-management</module>
         <module>purchasing-management</module>
         <module>user-management</module>
-        <module>core</module>
+        <module>util</module>
     </modules>
 
 
