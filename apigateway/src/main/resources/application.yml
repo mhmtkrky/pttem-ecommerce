@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: eureka-service
+
+server:
+  port: 8000
+
+eureka:
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    server:
+      waitTimeInMsWhenSyncEmpty: 0
+
+zuul:
+  prefix: /api
+  routes:
+    category-management:
+      path: /category-management/**
+      url: http://localhost:8001
+    comment-management:
+      path: /comment-management/**
+      url: http://localhost:8002
+    product-management:
+      path: /product-management/**
+      url: http://localhost:8003
+    purchasing-management:
+      path: /purchasing-management/**
+      url: http://localhost:8004
+    user-management:
+      path: /user-management/**
+      url: http://localhost:8005

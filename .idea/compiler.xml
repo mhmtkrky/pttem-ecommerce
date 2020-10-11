@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="apigateway" />
+        <module name="core" />
+        <module name="user-management" />
+        <module name="category-management" />
+        <module name="product-management" />
+        <module name="purchasing-management" />
+        <module name="comment-management" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="apigateway" target="11" />
+      <module name="category-management" target="11" />
+      <module name="comment-management" target="11" />
+      <module name="core" target="11" />
+      <module name="ecommerce" target="1.8" />
+      <module name="product-management" target="11" />
+      <module name="purchasing-management" target="11" />
+      <module name="user-management" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="apigateway" options="-parameters" />
+      <module name="category-management" options="-parameters" />
+      <module name="comment-management" options="-parameters" />
+      <module name="core" options="-parameters" />
+      <module name="product-management" options="-parameters" />
+      <module name="purchasing-management" options="-parameters" />
+      <module name="user-management" options="-parameters" />
+    </option>
+  </component>
+</project>

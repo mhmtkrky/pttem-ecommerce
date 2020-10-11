@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/apigateway/apigateway.iml" filepath="$PROJECT_DIR$/apigateway/apigateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/category-management/category-management.iml" filepath="$PROJECT_DIR$/category-management/category-management.iml" />
+      <module fileurl="file://$PROJECT_DIR$/comment-management/comment-management.iml" filepath="$PROJECT_DIR$/comment-management/comment-management.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ecommerce.iml" filepath="$PROJECT_DIR$/ecommerce.iml" />
+      <module fileurl="file://$PROJECT_DIR$/product-management/product-management.iml" filepath="$PROJECT_DIR$/product-management/product-management.iml" />
+      <module fileurl="file://$PROJECT_DIR$/purchasing-management/purchasing-management.iml" filepath="$PROJECT_DIR$/purchasing-management/purchasing-management.iml" />
+      <module fileurl="file://$PROJECT_DIR$/user-management/user-management.iml" filepath="$PROJECT_DIR$/user-management/user-management.iml" />
+    </modules>
+  </component>
+</project>
