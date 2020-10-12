@@ -22,6 +22,7 @@
         <module>product-management</module>
         <module>purchasing-management</module>
         <module>user-management</module>
+        <module>service-discovery</module>
         <module>util</module>
     </modules>
 

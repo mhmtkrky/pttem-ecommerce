@@ -1,32 +1,44 @@
 spring:
   application:
-    name: eureka-service
+    name: apigateway
 
 server:
-  port: 8000
+  port: 8081
 
-eureka:
-  client:
-    registerWithEureka: false
-    fetchRegistry: false
-    server:
-      waitTimeInMsWhenSyncEmpty: 0
+endpoints:
+  restart:
+    enabled: true
+  shutdown:
+    enabled: true
+  health:
+    sensitive: false
+
 
 zuul:
   prefix: /api
   routes:
     category-management:
       path: /category-management/**
-      url: http://localhost:8001
+      serviceId: category-management
     comment-management:
       path: /comment-management/**
-      url: http://localhost:8002
+      serviceId: comment-management
     product-management:
       path: /product-management/**
-      url: http://localhost:8003
+      serviceId: product-management
     purchasing-management:
       path: /purchasing-management/**
-      url: http://localhost:8004
+      serviceId: purchasing-management
     user-management:
       path: /user-management/**
-      url: http://localhost:8005
+      serviceId: user-management
+
+ribbon:
+  eureka:
+    enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8000/eureka/
+    registerWithEureka: false

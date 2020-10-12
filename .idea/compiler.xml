@@ -14,6 +14,7 @@
         <module name="product-management" />
         <module name="purchasing-management" />
         <module name="comment-management" />
+        <module name="service-discovery" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -24,6 +25,7 @@
       <module name="ecommerce" target="1.8" />
       <module name="product-management" target="11" />
       <module name="purchasing-management" target="11" />
+      <module name="service-discovery" target="11" />
       <module name="user-management" target="11" />
       <module name="util" target="1.8" />
     </bytecodeTargetLevel>
@@ -36,6 +38,7 @@
       <module name="core" options="-parameters" />
       <module name="product-management" options="-parameters" />
       <module name="purchasing-management" options="-parameters" />
+      <module name="service-discovery" options="-parameters" />
       <module name="user-management" options="-parameters" />
       <module name="util" options="-parameters" />
     </option>
