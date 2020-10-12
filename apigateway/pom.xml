@@ -89,7 +89,6 @@
             <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
         </dependency>
     </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -101,7 +100,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
         <plugins>
             <plugin>
@@ -110,7 +108,6 @@
                 <version>2.3.4.RELEASE</version>
             </plugin>
         </plugins>
+        <finalName>apigateway</finalName>
     </build>
-
-
 </project>

@@ -122,6 +122,6 @@
                 <version>2.3.4.RELEASE</version>
             </plugin>
         </plugins>
+        <finalName>category</finalName>
     </build>
-
 </project>

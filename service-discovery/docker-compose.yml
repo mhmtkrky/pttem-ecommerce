@@ -1,0 +1,78 @@
+version: "3"
+services:
+  apigateway:
+    image: apigateway
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8081:8081"
+    links:
+      - discovery
+
+  category:
+    image: category
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8001:8001"
+    links:
+      - discovery
+
+
+  comment:
+    image: comment
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8002:8002"
+    links:
+      - discovery
+
+  product:
+    image: product
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8003:8003"
+    links:
+      - discovery
+
+  purchasing:
+    image: purchasing
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8004:8004"
+    links:
+      - discovery
+
+  user:
+    image: user
+    networks:
+      - ecommerce
+    depends_on:
+      - discovery
+    ports:
+      - "8005:8005"
+    links:
+      - discovery
+
+  discovery:
+    image: discovery
+    ports:
+      - "8000:8000"
+    networks:
+      - ecommerce
+
+networks:
+  ecommerce:

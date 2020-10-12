@@ -129,6 +129,6 @@
                 <version>2.3.4.RELEASE</version>
             </plugin>
         </plugins>
+        <finalName>user</finalName>
     </build>
-
 </project>
