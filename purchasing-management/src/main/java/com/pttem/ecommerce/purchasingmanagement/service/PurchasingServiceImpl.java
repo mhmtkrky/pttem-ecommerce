@@ -1,17 +1,21 @@
 package com.pttem.ecommerce.purchasingmanagement.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pttem.ecommerce.purchasingmanagement.config.PurchasingtManagementConfiguration;
 import com.pttem.ecommerce.purchasingmanagement.entity.PurchasingDetailEntity;
 import com.pttem.ecommerce.purchasingmanagement.entity.PurchasingEntity;
 import com.pttem.ecommerce.purchasingmanagement.model.AddProductToPurchasingModel;
 import com.pttem.ecommerce.purchasingmanagement.repository.PurchasingDetailRepository;
 import com.pttem.ecommerce.purchasingmanagement.repository.PurchasingRepository;
 import exception.ResourceNotFoundException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static exception.ResourceNotFoundException.getNotFoundException;
 
@@ -21,6 +25,7 @@ public class PurchasingServiceImpl implements PurchasingService {
     private final PurchasingRepository repository;
     private final PurchasingDetailRepository detailRepository;
     private final ProductRestService productRestService;
+    private final RabbitTemplate rabbitTemplate;
 
     private final String RECORD_NOT_FOUND_MESSAGE = "Record not found";
     private final String PURCHASING_NOT_FOUND_MESSAGE = "Purchasing not found";
@@ -28,33 +33,29 @@ public class PurchasingServiceImpl implements PurchasingService {
 
     @Autowired
     public PurchasingServiceImpl(PurchasingRepository repository
-            , PurchasingDetailRepository detailRepository,
-                                 ProductRestService productRestService) {
+            , PurchasingDetailRepository detailRepository
+            , ProductRestService productRestService
+            , RabbitTemplate rabbitTemplate) {
         this.repository = repository;
         this.detailRepository = detailRepository;
         this.productRestService = productRestService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
 
     @Override
     public PurchasingEntity addProduct(AddProductToPurchasingModel model) {
-
         BigDecimal unitPrice = productRestService.getUnitPriceForUUID(model.getProductUUID());
-
         repository.save(getOrCreatePurchasingEntity(model.getUserUUID())
                 .incrementCountOrCreate(model.getProductUUID(), unitPrice));
-
         return getPurchasingEntityByUserUUID(model.getUserUUID());
     }
 
 
     @Override
     public PurchasingEntity removeProduct(AddProductToPurchasingModel model) {
-
         BigDecimal unitPrice = productRestService.getUnitPriceForUUID(model.getProductUUID());
-
         PurchasingDetailEntity purchasingDetailEntity = getPurchasingByUserAndProduct(model);
-
         return removeProductAndDeleteIfEmpty(model, unitPrice, purchasingDetailEntity);
     }
 
@@ -86,7 +87,9 @@ public class PurchasingServiceImpl implements PurchasingService {
     }
 
 
-    private PurchasingEntity removeProductAndDeleteIfEmpty(AddProductToPurchasingModel model, BigDecimal unitPrice, PurchasingDetailEntity purchasingDetailEntity) {
+    private PurchasingEntity removeProductAndDeleteIfEmpty(AddProductToPurchasingModel model
+            , BigDecimal unitPrice
+            , PurchasingDetailEntity purchasingDetailEntity) {
         if (purchasingDetailEntity.getCount() == 1) {
             return deletePurchasingDetail(purchasingDetailEntity.getPurchasing(), purchasingDetailEntity);
         } else {
@@ -101,6 +104,7 @@ public class PurchasingServiceImpl implements PurchasingService {
         checkStock(purchasingEntity);
         reduceStock(purchasingEntity);
         purchasingEntity.setCompleted(true);
+        sendProductCompletedMessage(purchasingEntity);
         return purchasingEntity;
     }
 
@@ -135,12 +139,26 @@ public class PurchasingServiceImpl implements PurchasingService {
     }
 
 
-    private PurchasingEntity deletePurchasingDetail(PurchasingEntity purchasingEntity, PurchasingDetailEntity purchasingDetailEntity) {
+    private PurchasingEntity deletePurchasingDetail(PurchasingEntity purchasingEntity
+            , PurchasingDetailEntity purchasingDetailEntity) {
         detailRepository.deleteById(purchasingDetailEntity.getId());
         if (purchasingEntity.getDetailList().size() == 1) {
             repository.deleteById(purchasingEntity.getId());
             purchasingEntity.getDetailList().remove(purchasingDetailEntity);
         }
         return null;
+    }
+    private void sendProductCompletedMessage(PurchasingEntity purchasingEntity) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            rabbitTemplate.convertAndSend(PurchasingtManagementConfiguration.topicExchangeName
+                    , "foo.bar.baz"
+                    , objectMapper.writeValueAsString(purchasingEntity
+                            .getDetailList()
+                            .stream().map(PurchasingDetailEntity::getProductUUID)
+                            .collect(Collectors.toList())));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 }

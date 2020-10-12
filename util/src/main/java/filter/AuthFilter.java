@@ -36,7 +36,7 @@ public class AuthFilter implements Filter {
                 for (HandlerMapping handlerMapping : handlerMappings) {
                     try {
                         HandlerExecutionChain handlerExecutionChain = handlerMapping.getHandler((HttpServletRequest) servletRequest);
-                        if (handlerExecutionChain != null) {
+                        if (handlerExecutionChain != null && handlerExecutionChain.getHandler() instanceof HandlerMethod) {
                             HandlerMethod handlerMethod = (HandlerMethod) (handlerExecutionChain.getHandler());
                             Method method = handlerMethod.getMethod();
                             if (method.getAnnotation(AdminLevelRequest.class) != null) {

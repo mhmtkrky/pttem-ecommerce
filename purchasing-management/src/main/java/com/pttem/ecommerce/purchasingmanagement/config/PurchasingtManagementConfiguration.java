@@ -9,6 +9,10 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spring.web.plugins.Docket;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 
 import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
 
@@ -41,5 +45,26 @@ public class PurchasingtManagementConfiguration {
                 .apis(RequestHandlerSelectors.basePackage(CONTROLLER_PACKAGE))
                 .paths(PathSelectors.regex(CONTROLLER_PATH_REGEX))
                 .build();
+    }
+
+
+
+    public static final String topicExchangeName = "spring-boot-exchange";
+
+    public static final String queueName = "spring-boot";
+
+    @Bean
+    Queue queue() {
+        return new Queue(queueName, false);
+    }
+
+    @Bean
+    TopicExchange exchange() {
+        return new TopicExchange(topicExchangeName);
+    }
+
+    @Bean
+    Binding binding(Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with("foo.bar.#");
     }
 }
