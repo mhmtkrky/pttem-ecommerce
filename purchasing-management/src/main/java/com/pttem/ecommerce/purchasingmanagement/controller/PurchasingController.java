@@ -22,25 +22,27 @@ public class PurchasingController {
 
 
     @GetMapping("")
-    private void getList(){
+    private void getList() {
         service.getList();
     }
 
     @GetMapping("/{uuid}")
-    private List<PurchasingEntity> getUserUUID(@PathVariable Long uuid){
+    private List<PurchasingEntity> getUserUUID(@PathVariable Long uuid) {
         return service.getUserUUID(uuid);
     }
 
     @PostMapping("/add")
-    private PurchasingEntity add(@Valid @RequestBody AddProductToPurchasingModel model){
+    private PurchasingEntity add(@Valid @RequestBody AddProductToPurchasingModel model) {
         return service.addProduct(model);
     }
+
     @PostMapping("/remove")
-    private PurchasingEntity remove(@Valid @RequestBody AddProductToPurchasingModel model){
+    private PurchasingEntity remove(@Valid @RequestBody AddProductToPurchasingModel model) {
         return service.removeProduct(model);
     }
+
     @GetMapping("/complete/{id}")
-    private PurchasingEntity complete(@PathVariable Long id){
+    private PurchasingEntity complete(@PathVariable Long id) {
         return service.complete(id);
     }
 }

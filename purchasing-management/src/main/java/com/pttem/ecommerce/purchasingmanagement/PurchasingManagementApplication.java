@@ -12,8 +12,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableJpaAuditing
 public class PurchasingManagementApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PurchasingManagementApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(PurchasingManagementApplication.class, args);
+    }
 
 }

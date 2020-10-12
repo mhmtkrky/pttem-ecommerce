@@ -12,8 +12,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class CommentManagementApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CommentManagementApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CommentManagementApplication.class, args);
+    }
 
 }

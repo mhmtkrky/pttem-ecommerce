@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 @Validated
 public interface ProductService extends BaseService<ProductEntity> {
     BigDecimal getUnitPriceForUUID(Long uuid);
+
     Integer reduceStock(Long uuid, Integer count);
+
     Boolean controlStock(Long uuid, Integer count);
 }

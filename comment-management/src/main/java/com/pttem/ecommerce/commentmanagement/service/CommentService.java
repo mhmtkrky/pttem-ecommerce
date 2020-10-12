@@ -5,4 +5,5 @@ import org.springframework.validation.annotation.Validated;
 import service.BaseService;
 
 @Validated
-public interface CommentService extends BaseService<CommentEntity> { }
+public interface CommentService extends BaseService<CommentEntity> {
+}

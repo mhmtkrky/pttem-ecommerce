@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+import static exception.ResourceNotFoundException.getNotFoundException;
+
 @Service
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
+    private final String PRODUCT_NOT_FOUND_MESSAGE = "Product not found";
 
     @Autowired
     public ProductServiceImpl(ProductRepository repository) {
@@ -28,31 +31,24 @@ public class ProductServiceImpl implements ProductService {
     public BigDecimal getUnitPriceForUUID(Long uuid) throws ResourceNotFoundException {
         return repository.findById(uuid)
                 .map(ProductEntity::getUnitPrice)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(getNotFoundException(PRODUCT_NOT_FOUND_MESSAGE));
 
     }
 
     @Override
     public Integer reduceStock(Long uuid, Integer count) throws ResourceNotFoundException {
-        ProductEntity product = repository.findById(uuid)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException("Product not found"));
 
-        if (product.getUnitInStock() - count < 0) {
-            throw new ResourceNotFoundException("Stock quantity could be not negative");
-        } else {
-            product.setUnitInStock(product.getUnitInStock() - count);
-            repository.save(product);
-            return product.getUnitInStock();
-        }
+        return repository.findById(uuid)
+                .map(product -> repository.save(product.reduceUnitInStock(count)).getUnitInStock())
+                .orElseThrow(getNotFoundException(PRODUCT_NOT_FOUND_MESSAGE));
+
     }
 
     @Override
     public Boolean controlStock(Long uuid, Integer count) {
-        ProductEntity product = repository.findById(uuid)
-                .orElseThrow(()
-                        -> new ResourceNotFoundException("Product not found"));
-        return product.getUnitInStock() >= count;
+        return repository.findById(uuid)
+                .map(product -> product.getUnitInStock() >= count)
+                .orElseThrow(getNotFoundException(PRODUCT_NOT_FOUND_MESSAGE));
+
     }
 }

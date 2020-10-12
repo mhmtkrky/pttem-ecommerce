@@ -9,8 +9,12 @@ import java.util.List;
 @Validated
 public interface PurchasingService {
     PurchasingEntity addProduct(AddProductToPurchasingModel model);
+
     PurchasingEntity removeProduct(AddProductToPurchasingModel model);
+
     PurchasingEntity complete(Long id);
+
     List<PurchasingEntity> getList();
+
     List<PurchasingEntity> getUserUUID(Long uuid);
 }

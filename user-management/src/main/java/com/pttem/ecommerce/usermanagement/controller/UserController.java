@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/rest")
-public class UserController  {
+public class UserController {
 
     private final UserService service;
 
@@ -18,18 +18,18 @@ public class UserController  {
     }
 
     @PostMapping("/user/login")
-    private UserEntity login(@RequestBody UserEntity model){
+    private UserEntity login(@RequestBody UserEntity model) {
         return service.login(model);
     }
 
     @PostMapping("/user/register")
-    private UserEntity register(@RequestBody UserEntity model){
+    private UserEntity register(@RequestBody UserEntity model) {
         return service.register(model);
     }
 
     @PostMapping("/user/active/{id}")
     @AdminLevelRequest
-    private UserEntity active(@PathVariable Long id){
+    private UserEntity active(@PathVariable Long id) {
         return service.active(id);
     }
 }

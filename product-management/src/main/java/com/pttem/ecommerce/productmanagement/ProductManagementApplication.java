@@ -13,9 +13,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class ProductManagementApplication {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		BeanConfigurater.init(SpringApplication.run(ProductManagementApplication.class, args));
-	}
+        BeanConfigurater.init(SpringApplication.run(ProductManagementApplication.class, args));
+    }
 
 }

@@ -31,6 +31,7 @@ public class AuthFilter implements Filter {
             String user = req.getHeader("user");
             if (user == null || user.equals("")) {
                 res.sendError(403, "not logged");
+                problem = true;
             } else if (handlerMappings != null) {
                 for (HandlerMapping handlerMapping : handlerMappings) {
                     try {

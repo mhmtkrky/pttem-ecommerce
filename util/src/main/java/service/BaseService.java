@@ -12,10 +12,14 @@ public interface BaseService<M extends AuditEntity> {
 
     default List<M> getList() {
         return getRepository().findAll();
-    };
+    }
+
+    ;
+
     default M create(M model) {
         return getRepository().save(model);
     }
+
     default M edit(M model) throws ResourceNotFoundException {
 
         if (!getRepository().existsById(model.getId()))
@@ -27,15 +31,19 @@ public interface BaseService<M extends AuditEntity> {
                         + " not found with id " + model.getId()));
 
     }
+
     default M getById(Long id) throws ResourceNotFoundException {
         return getRepository().findById(id).orElseThrow(()
                 -> new ResourceNotFoundException("Resource not found with id " + id));
     }
+
     default boolean delete(Long id) throws ResourceNotFoundException {
         return getRepository().findById(id)
                 .map(x -> {
                     getRepository().delete(x);
                     return true;
                 }).orElseThrow(() -> new ResourceNotFoundException("Resource not found with id " + id));
-    };
+    }
+
+    ;
 }

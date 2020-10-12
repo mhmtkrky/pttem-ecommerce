@@ -3,7 +3,10 @@ package com.pttem.ecommerce.usermanagement.entity;
 import entity.AuditEntity;
 import lombok.Getter;
 import lombok.Setter;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 @Getter
 @Setter
@@ -28,4 +31,9 @@ public class UserEntity extends AuditEntity {
 
     @Column(name = "isActive")
     private Boolean active = false;
+
+    public UserEntity activate(){
+        setActive(true);
+        return this;
+    }
 }

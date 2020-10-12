@@ -6,147 +6,66 @@ import com.pttem.ecommerce.purchasingmanagement.model.AddProductToPurchasingMode
 import com.pttem.ecommerce.purchasingmanagement.repository.PurchasingDetailRepository;
 import com.pttem.ecommerce.purchasingmanagement.repository.PurchasingRepository;
 import exception.ResourceNotFoundException;
-import model.ProductStock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+
+import static exception.ResourceNotFoundException.getNotFoundException;
 
 @Service
 public class PurchasingServiceImpl implements PurchasingService {
 
     private final PurchasingRepository repository;
     private final PurchasingDetailRepository detailRepository;
-    private final RestTemplate restTemplate;
-    private final String PRODUCT_BASE_URL = "http://product-management/rest/product/";
+    private final ProductRestService productRestService;
+
+    private final String RECORD_NOT_FOUND_MESSAGE = "Record not found";
+    private final String PURCHASING_NOT_FOUND_MESSAGE = "Purchasing not found";
+    private final String PRODUCT_IS_OUT_OF_STOCK_MESSAGE = "Product is out of stock";
 
     @Autowired
     public PurchasingServiceImpl(PurchasingRepository repository
-            , PurchasingDetailRepository detailRepository
-            , RestTemplate restTemplate) {
+            , PurchasingDetailRepository detailRepository,
+                                 ProductRestService productRestService) {
         this.repository = repository;
         this.detailRepository = detailRepository;
-        this.restTemplate = restTemplate;
+        this.productRestService = productRestService;
     }
+
 
     @Override
     public PurchasingEntity addProduct(AddProductToPurchasingModel model) {
 
-        ResponseEntity<BigDecimal> unitPrice = restTemplate
-                .exchange(PRODUCT_BASE_URL + "unitPrice/"
-                        + model.getProductUUID(), HttpMethod.GET, null, BigDecimal.class);
+        BigDecimal unitPrice = productRestService.getUnitPriceForUUID(model.getProductUUID());
 
-        PurchasingEntity newPurch =
-                repository.findByUserUUID(model.getUserUUID())
-                        .stream()
-                        .filter(x -> !x.getCompleted())
-                        .findFirst()
-                        .orElseGet(() -> {
-                            PurchasingEntity x = new PurchasingEntity();
-                            x.setUserUUID(model.getUserUUID());
-                            return x;
-                        });
+        repository.save(getOrCreatePurchasingEntity(model.getUserUUID())
+                .incrementCountOrCreate(model.getProductUUID(), unitPrice));
 
-        PurchasingDetailEntity purchDetail = newPurch.getDetailList()
-                .stream()
-                .filter(x -> x.getProductUUID().equals(model.getProductUUID()))
-                .findFirst()
-                .map(x -> {
-                    x.setCount(x.getCount() + 1);
-                    return x;
-                }).orElseGet(() -> {
-                    PurchasingDetailEntity x = new PurchasingDetailEntity();
-                    x.setCount(1);
-                    x.setProductUUID(model.getProductUUID());
-                    x.setPurchasing(newPurch);
-                    x.setUnitPrice(unitPrice.getBody());
-                    newPurch.addDetail(x);
-                    return x;
-                });
-        newPurch.setTotalPrice(newPurch.getTotalPrice().add(unitPrice.getBody()));
-        repository.save(newPurch);
-        return repository.findByUserUUID(model.getUserUUID())
-                .stream().findFirst().orElseThrow(()
-                        -> new ResourceNotFoundException("Record Not Found"));
+        return getPurchasingEntityByUserUUID(model.getUserUUID());
     }
+
 
     @Override
     public PurchasingEntity removeProduct(AddProductToPurchasingModel model) {
 
-        ResponseEntity<BigDecimal> unitPrice = restTemplate
-                .exchange(PRODUCT_BASE_URL + "unitPrice/"
-                        + model.getProductUUID(), HttpMethod.GET, null, BigDecimal.class);
+        BigDecimal unitPrice = productRestService.getUnitPriceForUUID(model.getProductUUID());
 
-        PurchasingEntity newPurc =
-                repository.findByUserUUID(model.getUserUUID())
-                        .stream()
-                        .filter(x -> !x.getCompleted())
-                        .findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException("Purchasing not found"));
+        PurchasingDetailEntity purchasingDetailEntity = getPurchasingByUserAndProduct(model);
 
-
-        Optional<PurchasingDetailEntity> purchasingDetailEntity = newPurc
-                .getDetailList()
-                .stream()
-                .filter(x -> x.getProductUUID().equals(model.getProductUUID()))
-                .findFirst();
-
-
-        if (purchasingDetailEntity.isPresent()) {
-            PurchasingDetailEntity pde = purchasingDetailEntity.get();
-            if (pde.getCount() == 1) {
-                detailRepository.deleteById(pde.getId());
-                if (newPurc.getDetailList().size() == 1) {
-                    repository.deleteById(newPurc.getId());
-                    newPurc.getDetailList().remove(pde);
-                }
-                return null;
-            } else {
-                pde.setCount(pde.getCount() - 1);
-                newPurc.setTotalPrice(newPurc.getTotalPrice().subtract(unitPrice.getBody()));
-                repository.save(newPurc);
-                return repository.findByUserUUID(model.getUserUUID())
-                        .stream().findFirst().orElseThrow(()
-                                -> new ResourceNotFoundException("Record Not Found"));
-
-            }
-        }
-        throw new ResourceNotFoundException("Record Not Found");
-
+        return removeProductAndDeleteIfEmpty(model, unitPrice, purchasingDetailEntity);
     }
+
 
     @Override
     public PurchasingEntity complete(Long id) {
-        return repository.findByUserUUID(id)
-                .stream()
-                .filter(x -> !x.getCompleted())
-                .findFirst()
-                .map(x -> {
-
-                    if (x.getDetailList()
-                            .stream()
-                            .noneMatch(detail -> restTemplate
-                                    .exchange(PRODUCT_BASE_URL + "unitInStock/"
-                                            , HttpMethod.POST, new HttpEntity<>(new ProductStock(detail.getProductUUID(), detail.getCount()))
-                                            , Boolean.class).getBody())) {
-                        throw new ResourceNotFoundException("Product is out of stock");
-                    } else {
-                        x.getDetailList()
-                                .forEach(detail -> restTemplate
-                                        .exchange(PRODUCT_BASE_URL + "reduceStock/"
-                                                , HttpMethod.POST, new HttpEntity<>(new ProductStock(detail.getProductUUID(), detail.getCount()))
-                                                , Integer.class).getBody());
-                    }
-                    x.setCompleted(true);
-                    return repository.save(x);
-                }).orElseThrow(() -> new ResourceNotFoundException("Purchasing not found with id " + id));
+        return getPurchasingEntity(id)
+                .map(purchasingEntity -> repository.save(completePurchasing(purchasingEntity)))
+                .orElseThrow(getNotFoundException(PURCHASING_NOT_FOUND_MESSAGE));
     }
+
 
     @Override
     public List<PurchasingEntity> getList() {
@@ -156,5 +75,72 @@ public class PurchasingServiceImpl implements PurchasingService {
     @Override
     public List<PurchasingEntity> getUserUUID(Long uuid) {
         return repository.findByUserUUID(uuid);
+    }
+
+    private PurchasingDetailEntity getPurchasingByUserAndProduct(AddProductToPurchasingModel model) {
+        return getPurchasingEntity(model.getUserUUID())
+                .orElseThrow(getNotFoundException(PURCHASING_NOT_FOUND_MESSAGE))
+                .getDetailList().stream().filter(x -> x.getProductUUID().equals(model.getProductUUID()))
+                .findFirst()
+                .orElseThrow(getNotFoundException(RECORD_NOT_FOUND_MESSAGE));
+    }
+
+
+    private PurchasingEntity removeProductAndDeleteIfEmpty(AddProductToPurchasingModel model, BigDecimal unitPrice, PurchasingDetailEntity purchasingDetailEntity) {
+        if (purchasingDetailEntity.getCount() == 1) {
+            return deletePurchasingDetail(purchasingDetailEntity.getPurchasing(), purchasingDetailEntity);
+        } else {
+            purchasingDetailEntity.decrementCount();
+            repository.save(purchasingDetailEntity.getPurchasing().subtractTotalPrice(unitPrice));
+            return getPurchasingEntityByUserUUID(model.getUserUUID());
+
+        }
+    }
+
+    private PurchasingEntity completePurchasing(PurchasingEntity purchasingEntity) {
+        checkStock(purchasingEntity);
+        reduceStock(purchasingEntity);
+        purchasingEntity.setCompleted(true);
+        return purchasingEntity;
+    }
+
+    private void reduceStock(PurchasingEntity purchasingEntity) {
+        purchasingEntity.getDetailList()
+                .forEach(detail -> productRestService.reduceStock(detail.getProductUUID(), detail.getCount()));
+    }
+
+    private void checkStock(PurchasingEntity purchasingEntity) {
+        if (purchasingEntity.getDetailList()
+                .stream()
+                .noneMatch(detail -> productRestService.controlStock(detail.getProductUUID(), detail.getCount()))) {
+            throw new ResourceNotFoundException(PRODUCT_IS_OUT_OF_STOCK_MESSAGE);
+        }
+    }
+
+    private PurchasingEntity getOrCreatePurchasingEntity(Long userUUID) {
+        return getPurchasingEntity(userUUID)
+                .orElseGet(() -> PurchasingEntity.builder().userUUID(userUUID).build());
+    }
+
+    private Optional<PurchasingEntity> getPurchasingEntity(Long userUUID) {
+        return repository.findByUserUUID(userUUID)
+                .stream()
+                .filter(x -> !x.getCompleted())
+                .findFirst();
+    }
+
+    private PurchasingEntity getPurchasingEntityByUserUUID(Long userUUID) {
+        return repository.findByUserUUID(userUUID)
+                .stream().findFirst().orElseThrow(getNotFoundException(RECORD_NOT_FOUND_MESSAGE));
+    }
+
+
+    private PurchasingEntity deletePurchasingDetail(PurchasingEntity purchasingEntity, PurchasingDetailEntity purchasingDetailEntity) {
+        detailRepository.deleteById(purchasingDetailEntity.getId());
+        if (purchasingEntity.getDetailList().size() == 1) {
+            repository.deleteById(purchasingEntity.getId());
+            purchasingEntity.getDetailList().remove(purchasingDetailEntity);
+        }
+        return null;
     }
 }

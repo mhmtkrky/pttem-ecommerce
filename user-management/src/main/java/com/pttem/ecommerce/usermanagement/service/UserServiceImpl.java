@@ -2,15 +2,16 @@ package com.pttem.ecommerce.usermanagement.service;
 
 import com.pttem.ecommerce.usermanagement.entity.UserEntity;
 import com.pttem.ecommerce.usermanagement.repository.UserRepository;
-import exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+
+import static exception.ResourceNotFoundException.getNotFoundException;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
+    private final String RECORD_NOT_FOUND_MESSAGE = "Record not found";
 
     @Autowired
     public UserServiceImpl(UserRepository repository) {
@@ -19,10 +20,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity login(UserEntity model) {
-        UserEntity userEntity = repository.findByEmailAndPassword(model.getEmail(),model.getPassword())
-               .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
-        return userEntity;
+        return repository.findByEmailAndPassword(model.getEmail(), model.getPassword())
+                .orElseThrow(getNotFoundException(RECORD_NOT_FOUND_MESSAGE));
     }
+
 
     @Override
     public UserEntity register(UserEntity model) {
@@ -31,11 +32,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity active(Long id) {
-        UserEntity userEntity = repository.findById(id)
-                .map(x -> {
-                    x.setActive(true);
-                    return x;
-                }).orElseThrow(() -> new ResourceNotFoundException("Record not found"));
-        return repository.save(userEntity);
+        return repository.save(repository.findById(id)
+                .map(UserEntity::activate)
+                .orElseThrow(getNotFoundException(RECORD_NOT_FOUND_MESSAGE)));
     }
 }
